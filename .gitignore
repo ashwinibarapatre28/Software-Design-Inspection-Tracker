@@ -1,0 +1,29 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv
+
+# Database
+designinspect.db
+*.sqlite3
+*.db
+
+# Environments
+.env
+.venv
+pip-log.txt
+
+# IDEs & System files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.antigravity/
+.gemini/
