@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}DesignInspect{% endblock %} - Software Design Inspection Tracker</title>
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- App CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if session.get('user_id') %}
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="app-sidebar" id="appSidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-search-location"></i>
+                </div>
+                <div>
+                    <div class="sidebar-logo-text">DesignInspect</div>
+                    <div class="sidebar-logo-tagline">Inspect. Track. Resolve.</div>
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li class="menu-category">Overview</li>
+                <li class="menu-item">
+                    <a href="{{ url_for('dashboard.index') }}" class="menu-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="menu-category">Inspection Portal</li>
+                <li class="menu-item">
+                    <a href="{{ url_for('projects.index') }}" class="menu-link {% if 'projects' in request.endpoint %}active{% endif %}">
+                        <i class="fas fa-folder-open"></i>
+                        <span>Projects</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{{ url_for('documents.index') }}" class="menu-link {% if 'documents' in request.endpoint %}active{% endif %}">
+                        <i class="fas fa-file-code"></i>
+                        <span>Design Documents</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{{ url_for('inspections.index') }}" class="menu-link {% if 'inspections' in request.endpoint %}active{% endif %}">
+                        <i class="fas fa-clipboard-check"></i>
+                        <span>Inspections</span>
+                    </a>
+                </li>
+
+                <li class="menu-category">Defect Tracking</li>
+                <li class="menu-item">
+                    <a href="{{ url_for('defects.index') }}" class="menu-link {% if request.endpoint == 'defects.index' %}active{% endif %}">
+                        <i class="fas fa-list-check"></i>
+                        <span>Defects Table</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{{ url_for('defects.kanban') }}" class="menu-link {% if request.endpoint == 'defects.kanban' %}active{% endif %}">
+                        <i class="fas fa-columns"></i>
+                        <span>Kanban Board</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{{ url_for('defects.my_tasks') }}" class="menu-link {% if request.endpoint == 'defects.my_tasks' %}active{% endif %}">
+                        <i class="fas fa-tasks"></i>
+                        <span>My Tasks</span>
+                    </a>
+                </li>
+
+                <li class="menu-category">Analytics & Reports</li>
+                <li class="menu-item">
+                    <a href="{{ url_for('reports.index') }}" class="menu-link {% if 'reports' in request.endpoint %}active{% endif %}">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{{ url_for('analytics.index') }}" class="menu-link {% if 'analytics' in request.endpoint %}active{% endif %}">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analytics</span>
+                    </a>
+                </li>
+
+                <li class="menu-category">Administration</li>
+                <li class="menu-item">
+                    <a href="{{ url_for('team.index') }}" class="menu-link {% if 'team' in request.endpoint %}active{% endif %}">
+                        <i class="fas fa-users"></i>
+                        <span>Team Members</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{{ url_for('settings.index') }}" class="menu-link {% if 'settings' in request.endpoint %}active{% endif %}">
+                        <i class="fas fa-sliders"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{{ url_for('help.index') }}" class="menu-link {% if 'help' in request.endpoint %}active{% endif %}">
+                        <i class="fas fa-circle-question"></i>
+                        <span>Help & Guide</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="user-avatar-sm">{{ session.get('user_name', 'U')[0] }}</div>
+                <div style="flex: 1; overflow: hidden;">
+                    <div style="font-weight: 600; font-size: 0.85rem; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ session.get('user_name') }}</div>
+                    <div style="font-size: 0.72rem; color: #94a3b8;">{{ session.get('user_role') }}</div>
+                </div>
+                <a href="{{ url_for('auth.logout') }}" style="color: #94a3b8; font-size: 1rem;" title="Logout"><i class="fas fa-right-from-bracket"></i></a>
+            </div>
+        </aside>
+
+        <!-- Main Wrapper -->
+        <main class="app-main">
+            <!-- Top Header -->
+            <header class="app-header">
+                <div class="header-left">
+                    <button class="search-trigger" id="globalSearchTrigger">
+                        <i class="fas fa-search"></i>
+                        <span>Search defects, projects, docs...</span>
+                        <kbd style="margin-left: auto; background: #e2e8f0; border-radius: 4px; padding: 2px 6px; font-size: 0.7rem; color: #475569;">Ctrl K</kbd>
+                    </button>
+                </div>
+
+                <div class="header-right">
+                    <!-- Notifications Dropdown Bell -->
+                    <div style="position: relative;">
+                        <button class="notif-bell-btn" id="notifBellBtn" title="Notifications">
+                            <i class="far fa-bell"></i>
+                            <span class="notif-badge" id="notifBadgeCount" style="{% if unread_notifications_count == 0 %}display: none;{% endif %}">{{ unread_notifications_count }}</span>
+                        </button>
+
+                        <div id="notifDropdown" style="position: absolute; right: 0; top: 48px; width: 340px; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; display: none; z-index: 1000;">
+                            <div style="padding: 14px 16px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+                                <strong style="font-size: 0.9rem;">Notifications</strong>
+                                <button id="markAllReadBtn" style="background: none; border: none; color: #4f46e5; font-size: 0.75rem; font-weight: 600; cursor: pointer;">Mark all as read</button>
+                            </div>
+                            <div id="notifList" style="max-height: 300px; overflow-y: auto;">
+                                <!-- Dynamic JS Population -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User Profile & Role -->
+                    <div class="user-profile-btn">
+                        <span class="role-badge {{ session.get('user_role', '').replace(' ', '-') }}">{{ session.get('user_role') }}</span>
+                        <span style="font-weight: 600; font-size: 0.88rem;">{{ session.get('user_name') }}</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Toast Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="toast-container">
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} toast-alert">
+                        <i class="fas {% if category == 'success' %}fa-circle-check{% elif category == 'danger' %}fa-circle-xmark{% else %}fa-circle-info{% endif %}"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Page Body -->
+            <div class="content-body">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Global Search Modal -->
+    <div class="modal-backdrop" id="globalSearchModal">
+        <div class="modal-card" style="max-width: 650px;">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                    <i class="fas fa-search" style="color: #64748b; font-size: 1.1rem;"></i>
+                    <input type="text" id="globalSearchInput" placeholder="Search defects, projects, documents, inspections..." style="border: none; font-size: 1rem; width: 100%; outline: none;">
+                </div>
+                <button class="close-modal" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #64748b;"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="globalSearchResults" style="padding: 12px; min-height: 250px;">
+                <div style="padding: 30px; text-align: center; color: #64748b;">
+                    <i class="fas fa-keyboard" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i>
+                    <p>Start typing to search across the entire inspection system</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Public Authentication Layout -->
+    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f172a, #1e1b4b); padding: 20px;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="toast-container">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} toast-alert">
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block auth_content %}{% endblock %}
+    </div>
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Register - DesignInspect{% endblock %}
+
+{% block auth_content %}
+<div class="card" style="width: 100%; max-width: 500px; border-radius: 20px; padding: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); background: #ffffff;">
+    <div style="text-align: center; margin-bottom: 24px;">
+        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 12px;">
+            <i class="fas fa-user-plus"></i>
+        </div>
+        <h2 style="font-size: 1.5rem; font-weight: 800; color: #0f172a;">Join DesignInspect</h2>
+        <p style="font-size: 0.85rem; color: #64748b;">Create your software inspection team account</p>
+    </div>
+
+    <form action="{{ url_for('auth.register') }}" method="POST">
+        <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. John Doe" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-control" placeholder="john@company.com" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" name="username" class="form-control" placeholder="johndoe" required>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Confirm Password</label>
+                <input type="password" name="confirm_password" class="form-control" placeholder="••••••••" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Role in Inspection Workflow</label>
+            <select name="role" class="form-select" required>
+                <option value="Reviewer">Reviewer (Conducts inspections, logs & verifies defects)</option>
+                <option value="Developer">Developer (Fixes assigned defects & updates resolution)</option>
+                <option value="Project Manager">Project Manager (Manages project scope & team assignment)</option>
+                <option value="Admin">Admin (Full system configuration & category management)</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 0.95rem; font-weight: 700; border-radius: 10px; margin-top: 8px;">
+            <i class="fas fa-check-circle"></i> Complete Registration
+        </button>
+    </form>
+
+    <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 0.88rem; color: #64748b;">
+        Already registered? <a href="{{ url_for('auth.login') }}" style="font-weight: 700;">Sign In</a>
+    </div>
+</div>
+{% endblock %}
