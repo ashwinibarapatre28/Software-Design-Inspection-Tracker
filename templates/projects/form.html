@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Project - DesignInspect{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ action }} Project</h1>
+        <p class="page-subtitle">Configure software inspection project scope, manager assignment, and timeline</p>
+    </div>
+    <a href="{{ url_for('projects.index') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Projects</a>
+</div>
+
+<div class="card" style="max-width: 750px; margin: 0 auto;">
+    <form action="{{ url_for('projects.create') if action == 'Create' else url_for('projects.edit', project_id=project.id) }}" method="POST">
+        <div class="form-group">
+            <label class="form-label">Project Name *</label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. Online Banking System Overhaul" value="{{ project.name if project else '' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Project Description</label>
+            <textarea name="description" class="form-control" rows="4" placeholder="Describe the software engineering system, functional goals, and design inspection objectives...">{{ project.description if project else '' }}</textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Project Manager *</label>
+                <select name="manager_id" class="form-select" required>
+                    <option value="">Select Project Manager...</option>
+                    {% for mgr in managers %}
+                    <option value="{{ mgr.id }}" {% if project and project.manager_id == mgr.id %}selected{% endif %}>{{ mgr.name }} ({{ mgr.role }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Project Status</label>
+                <select name="status" class="form-select">
+                    <option value="Planning" {% if project and project.status == 'Planning' %}selected{% endif %}>Planning</option>
+                    <option value="Active" {% if not project or project.status == 'Active' %}selected{% endif %}>Active</option>
+                    <option value="Under Review" {% if project and project.status == 'Under Review' %}selected{% endif %}>Under Review</option>
+                    <option value="Completed" {% if project and project.status == 'Completed' %}selected{% endif %}>Completed</option>
+                    <option value="Archived" {% if project and project.status == 'Archived' %}selected{% endif %}>Archived</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Start Date</label>
+                <input type="date" name="start_date" class="form-control" value="{{ project.start_date.strftime('%Y-%m-%d') if project and project.start_date else '' }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Target Completion Date</label>
+                <input type="date" name="end_date" class="form-control" value="{{ project.end_date.strftime('%Y-%m-%d') if project and project.end_date else '' }}">
+            </div>
+        </div>
+
+        <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+            <a href="{{ url_for('projects.index') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Project</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

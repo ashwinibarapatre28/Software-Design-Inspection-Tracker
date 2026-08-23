@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.name }} - Project Details - DesignInspect{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+            <span class="badge" style="background: #e0e7ff; color: #3730a3; font-weight: 700; font-size: 0.85rem;">{{ project.project_code }}</span>
+            <span class="badge status-{{ project.status.replace(' ', '-') }}">{{ project.status }}</span>
+        </div>
+        <h1 class="page-title">{{ project.name }}</h1>
+        <p class="page-subtitle">Project Manager: <strong>{{ project.manager.name if project.manager else 'Unassigned' }}</strong> | Timeline: {{ project.start_date or 'N/A' }} to {{ project.end_date or 'N/A' }}</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="{{ url_for('documents.create', project_id=project.id) }}" class="btn btn-secondary"><i class="fas fa-file-upload"></i> Register Document</a>
+        <a href="{{ url_for('defects.create', project_id=project.id) }}" class="btn btn-primary"><i class="fas fa-plus"></i> Log Defect</a>
+        {% if session.get('user_role') in ['Admin', 'Project Manager'] %}
+        <a href="{{ url_for('projects.edit', project_id=project.id) }}" class="btn btn-secondary"><i class="fas fa-pen"></i> Edit Project</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Project Overview Metric Bar -->
+<div class="grid-cols-4" style="margin-bottom: 28px;">
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Design Documents</div>
+            <div class="metric-val">{{ documents|length }}</div>
+        </div>
+        <div class="metric-icon indigo"><i class="fas fa-file-code"></i></div>
+    </div>
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Total Defects</div>
+            <div class="metric-val">{{ total_defects }}</div>
+        </div>
+        <div class="metric-icon amber"><i class="fas fa-bug"></i></div>
+    </div>
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Critical Defects</div>
+            <div class="metric-val" style="color: #ef4444;">{{ critical_defects }}</div>
+        </div>
+        <div class="metric-icon red"><i class="fas fa-radiation"></i></div>
+    </div>
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Closed Defects</div>
+            <div class="metric-val" style="color: #10b981;">{{ closed_defects }}</div>
+        </div>
+        <div class="metric-icon emerald"><i class="fas fa-check-circle"></i></div>
+    </div>
+</div>
+
+<!-- Project Description Card -->
+<div class="card" style="margin-bottom: 28px;">
+    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px;">Project Overview & Objectives</h3>
+    <p style="color: #475569; font-size: 0.92rem; line-height: 1.6;">{{ project.description or 'No detailed description provided for this project.' }}</p>
+</div>
+
+<!-- Tabs for Documents, Inspections, and Defects -->
+<div class="card" style="padding: 0; margin-bottom: 28px;">
+    <div style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+        <h3 style="font-size: 1.1rem; font-weight: 700;">Design Documents under Review</h3>
+        <a href="{{ url_for('documents.create') }}" class="btn btn-secondary btn-sm"><i class="fas fa-plus"></i> Add Document</a>
+    </div>
+    <div class="table-container" style="border: none; box-shadow: none; border-radius: 0;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Doc Code</th>
+                    <th>Document Name</th>
+                    <th>Type</th>
+                    <th>Version</th>
+                    <th>Author</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in documents %}
+                <tr>
+                    <td><strong>{{ doc.doc_code }}</strong></td>
+                    <td><a href="{{ url_for('documents.detail', doc_id=doc.id) }}" style="font-weight: 600; color: #0f172a;">{{ doc.name }}</a></td>
+                    <td><span style="font-size: 0.8rem; background: #f1f5f9; padding: 3px 8px; border-radius: 4px; color: #475569;">{{ doc.document_type }}</span></td>
+                    <td><strong style="color: #4f46e5;">{{ doc.version }}</strong></td>
+                    <td>{{ doc.author.name if doc.author else 'N/A' }}</td>
+                    <td><span class="badge status-{{ doc.review_status.replace(' ', '-') }}">{{ doc.review_status }}</span></td>
+                    <td><a href="{{ url_for('documents.detail', doc_id=doc.id) }}" class="btn btn-secondary btn-sm"><i class="fas fa-folder-open"></i> View</a></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">No documents attached to this project.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Defect Register Table -->
+<div class="card" style="padding: 0;">
+    <div style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+        <h3 style="font-size: 1.1rem; font-weight: 700;">Defects Register</h3>
+        <a href="{{ url_for('defects.index', project_id=project.id) }}" class="btn btn-secondary btn-sm">Filter Defects View</a>
+    </div>
+    <div class="table-container" style="border: none; box-shadow: none; border-radius: 0;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Defect ID</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Severity</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Assignee</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for defect in defects %}
+                <tr>
+                    <td><strong style="color: #4f46e5;">{{ defect.defect_code }}</strong></td>
+                    <td><a href="{{ url_for('defects.detail', defect_id=defect.id) }}" style="font-weight: 600; color: #0f172a;">{{ defect.title }}</a></td>
+                    <td><span style="font-size: 0.78rem; color: #64748b;">{{ defect.category.name if defect.category else 'General' }}</span></td>
+                    <td><span class="badge sev-{{ defect.severity }}">{{ defect.severity }}</span></td>
+                    <td><span class="badge" style="background: #f1f5f9; color: #475569;">{{ defect.priority }}</span></td>
+                    <td><span class="badge status-{{ defect.status.replace(' ', '-') }}">{{ defect.status }}</span></td>
+                    <td>{{ defect.assignee.name if defect.assignee else 'Unassigned' }}</td>
+                    <td><a href="{{ url_for('defects.detail', defect_id=defect.id) }}" class="btn btn-secondary btn-sm"><i class="fas fa-eye"></i> View</a></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" style="text-align: center; color: #64748b; padding: 20px;">No defects logged for this project yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

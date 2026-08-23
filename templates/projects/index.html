@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Projects - DesignInspect{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Project Management</h1>
+        <p class="page-subtitle">Track design inspection scopes, documents, and resolution health across software projects</p>
+    </div>
+    {% if session.get('user_role') in ['Admin', 'Project Manager'] %}
+    <a href="{{ url_for('projects.create') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Create Project
+    </a>
+    {% endif %}
+</div>
+
+<!-- Filters Bar -->
+<div class="card" style="margin-bottom: 24px; padding: 16px 20px;">
+    <form method="GET" action="{{ url_for('projects.index') }}" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 240px;">
+            <input type="text" name="search" class="form-control" placeholder="Search project name, code, description..." value="{{ search_query }}">
+        </div>
+        <div style="width: 180px;">
+            <select name="status" class="form-select" onchange="this.form.submit()">
+                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
+                <option value="Planning" {% if status_filter == 'Planning' %}selected{% endif %}>Planning</option>
+                <option value="Active" {% if status_filter == 'Active' %}selected{% endif %}>Active</option>
+                <option value="Under Review" {% if status_filter == 'Under Review' %}selected{% endif %}>Under Review</option>
+                <option value="Completed" {% if status_filter == 'Completed' %}selected{% endif %}>Completed</option>
+                <option value="Archived" {% if status_filter == 'Archived' %}selected{% endif %}>Archived</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-secondary"><i class="fas fa-filter"></i> Filter</button>
+        {% if search_query or status_filter != 'all' %}
+        <a href="{{ url_for('projects.index') }}" class="btn btn-secondary" style="color: #ef4444;"><i class="fas fa-times"></i> Reset</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Projects Grid -->
+<div class="grid-cols-3">
+    {% for proj in projects %}
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; position: relative;">
+        <div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <span class="badge" style="background: #e0e7ff; color: #3730a3; font-weight: 700;">{{ proj.project_code }}</span>
+                <span class="badge status-{{ proj.status.replace(' ', '-') }}">{{ proj.status }}</span>
+            </div>
+
+            <h3 style="font-size: 1.2rem; font-weight: 700; color: #0f172a; margin-bottom: 8px;">
+                <a href="{{ url_for('projects.detail', project_id=proj.id) }}">{{ proj.name }}</a>
+            </h3>
+            
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                {{ proj.description or 'No project description provided.' }}
+            </p>
+        </div>
+
+        <div>
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; color: #64748b; padding-top: 14px; border-top: 1px solid #e2e8f0; margin-bottom: 16px;">
+                <div><i class="fas fa-user-tie"></i> PM: <strong>{{ proj.manager.name if proj.manager else 'N/A' }}</strong></div>
+                <div><i class="fas fa-file"></i> Docs: <strong>{{ proj.documents|length }}</strong></div>
+                <div><i class="fas fa-bug"></i> Defects: <strong>{{ proj.defects|length }}</strong></div>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <a href="{{ url_for('projects.detail', project_id=proj.id) }}" class="btn btn-secondary btn-sm" style="flex: 1;"><i class="fas fa-folder-open"></i> Open Portal</a>
+                {% if session.get('user_role') in ['Admin', 'Project Manager'] %}
+                <a href="{{ url_for('projects.edit', project_id=proj.id) }}" class="btn btn-secondary btn-sm"><i class="fas fa-edit"></i></a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card" style="grid-column: span 3; text-align: center; padding: 48px;">
+        <i class="fas fa-folder-open" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 16px;"></i>
+        <h3 style="font-size: 1.2rem; color: #475569;">No projects found matching filter criteria</h3>
+        <p style="font-size: 0.9rem; color: #94a3b8; margin-top: 4px;">Try clearing your filters or create a new project.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
