@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Design Documents - DesignInspect{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Design Document Management</h1>
+        <p class="page-subtitle">Register, version-track, and inspect software architecture, system specs, and UML diagrams</p>
+    </div>
+    <a href="{{ url_for('documents.create') }}" class="btn btn-primary">
+        <i class="fas fa-file-upload"></i> Register Document
+    </a>
+</div>
+
+<!-- Filters Bar -->
+<div class="card" style="margin-bottom: 24px; padding: 16px 20px;">
+    <form method="GET" action="{{ url_for('documents.index') }}" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 220px;">
+            <input type="text" name="search" class="form-control" placeholder="Search document name, code..." value="{{ search_query }}">
+        </div>
+        <div style="width: 200px;">
+            <select name="project_id" class="form-select" onchange="this.form.submit()">
+                <option value="">All Projects</option>
+                {% for p in projects %}
+                <option value="{{ p.id }}" {% if selected_project == p.id %}selected{% endif %}>{{ p.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="width: 220px;">
+            <select name="type" class="form-select" onchange="this.form.submit()">
+                <option value="all">All Document Types</option>
+                <option value="Software Architecture Document" {% if type_filter == 'Software Architecture Document' %}selected{% endif %}>Software Architecture</option>
+                <option value="System Design Document" {% if type_filter == 'System Design Document' %}selected{% endif %}>System Design</option>
+                <option value="Database Design" {% if type_filter == 'Database Design' %}selected{% endif %}>Database Design</option>
+                <option value="API Design" {% if type_filter == 'API Design' %}selected{% endif %}>API Design</option>
+                <option value="UML Diagram" {% if type_filter == 'UML Diagram' %}selected{% endif %}>UML Diagram</option>
+                <option value="UI/UX Design" {% if type_filter == 'UI/UX Design' %}selected{% endif %}>UI/UX Design</option>
+                <option value="Technical Specification" {% if type_filter == 'Technical Specification' %}selected{% endif %}>Technical Spec</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-secondary"><i class="fas fa-filter"></i> Filter</button>
+    </form>
+</div>
+
+<!-- Documents Data Table -->
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Doc Code</th>
+                <th>Document Name</th>
+                <th>Project</th>
+                <th>Type</th>
+                <th>Version</th>
+                <th>Size Metric</th>
+                <th>Author</th>
+                <th>Review Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doc in documents %}
+            <tr>
+                <td><strong style="color: #4f46e5;">{{ doc.doc_code }}</strong></td>
+                <td>
+                    <a href="{{ url_for('documents.detail', doc_id=doc.id) }}" style="font-weight: 700; color: #0f172a;">{{ doc.name }}</a>
+                </td>
+                <td><span style="font-weight: 500; font-size: 0.85rem;">{{ doc.project.name if doc.project else 'N/A' }}</span></td>
+                <td><span style="font-size: 0.78rem; background: #f1f5f9; padding: 3px 8px; border-radius: 4px; color: #475569; font-weight: 600;">{{ doc.document_type }}</span></td>
+                <td><strong style="color: #6366f1;">{{ doc.version }}</strong></td>
+                <td><span style="font-size: 0.82rem; color: #64748b;">{{ doc.size_metric_value|int }} {{ doc.size_metric_type }}</span></td>
+                <td>{{ doc.author.name if doc.author else 'N/A' }}</td>
+                <td><span class="badge status-{{ doc.review_status.replace(' ', '-') }}">{{ doc.review_status }}</span></td>
+                <td>
+                    <div style="display: flex; gap: 6px;">
+                        <a href="{{ url_for('documents.detail', doc_id=doc.id) }}" class="btn btn-secondary btn-sm" title="View Profile"><i class="fas fa-folder-open"></i> View</a>
+                        <a href="{{ url_for('documents.create_version', doc_id=doc.id) }}" class="btn btn-secondary btn-sm" title="Upload New Version"><i class="fas fa-code-branch"></i> +v</a>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="9" style="text-align: center; color: #64748b; padding: 36px;">No design documents registered yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

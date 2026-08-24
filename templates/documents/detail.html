@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}{{ doc.name }} ({{ doc.version }}) - DesignInspect{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+            <span class="badge" style="background: #e0e7ff; color: #3730a3; font-weight: 700;">{{ doc.doc_code }}</span>
+            <span class="badge" style="background: #f1f5f9; color: #475569; font-weight: 700;">{{ doc.version }}</span>
+            <span class="badge status-{{ doc.review_status.replace(' ', '-') }}">{{ doc.review_status }}</span>
+        </div>
+        <h1 class="page-title">{{ doc.name }}</h1>
+        <p class="page-subtitle">Project: <strong>{{ doc.project.name if doc.project else 'N/A' }}</strong> | Document Type: {{ doc.document_type }}</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="{{ url_for('documents.create_version', doc_id=doc.id) }}" class="btn btn-secondary"><i class="fas fa-code-branch"></i> Create New Version</a>
+        <a href="{{ url_for('defects.create', document_id=doc.id, project_id=doc.project_id) }}" class="btn btn-primary"><i class="fas fa-plus"></i> Log Defect on Doc</a>
+    </div>
+</div>
+
+<div class="grid-cols-3" style="grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 28px;">
+    <!-- Document Metadata & Status Update Card -->
+    <div class="card">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;">Document Details & Size Metrics</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 0.9rem;">
+            <div>
+                <div style="color: #64748b; font-size: 0.8rem; font-weight: 600;">Author / Architect</div>
+                <div style="font-weight: 600; color: #0f172a;">{{ doc.author.name if doc.author else 'N/A' }}</div>
+            </div>
+            <div>
+                <div style="color: #64748b; font-size: 0.8rem; font-weight: 600;">Assigned Reviewer</div>
+                <div style="font-weight: 600; color: #0f172a;">{{ doc.reviewer.name if doc.reviewer else 'Unassigned' }}</div>
+            </div>
+            <div>
+                <div style="color: #64748b; font-size: 0.8rem; font-weight: 600;">Size Metric</div>
+                <div style="font-weight: 700; color: #4f46e5;">{{ doc.size_metric_value|int }} {{ doc.size_metric_type }}</div>
+            </div>
+            <div>
+                <div style="color: #64748b; font-size: 0.8rem; font-weight: 600;">Upload Date</div>
+                <div style="font-weight: 500;">{{ doc.upload_date.strftime('%b %d, %Y') }}</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+            <form action="{{ url_for('documents.update_status', doc_id=doc.id) }}" method="POST" style="display: flex; gap: 12px; align-items: center;">
+                <label style="font-weight: 600; font-size: 0.85rem; color: #0f172a;">Update Review Status:</label>
+                <select name="review_status" class="form-select" style="width: 220px;">
+                    <option value="Not Reviewed" {% if doc.review_status == 'Not Reviewed' %}selected{% endif %}>Not Reviewed</option>
+                    <option value="In Review" {% if doc.review_status == 'In Review' %}selected{% endif %}>In Review</option>
+                    <option value="Review Completed" {% if doc.review_status == 'Review Completed' %}selected{% endif %}>Review Completed</option>
+                    <option value="Revision Required" {% if doc.review_status == 'Revision Required' %}selected{% endif %}>Revision Required</option>
+                    <option value="Approved" {% if doc.review_status == 'Approved' %}selected{% endif %}>Approved</option>
+                </select>
+                <button type="submit" class="btn btn-secondary btn-sm"><i class="fas fa-save"></i> Update</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Version History Tree -->
+    <div class="card">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;">Document Version Control</h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            {% for ver in version_history %}
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 8px; background: {% if ver.id == doc.id %}#e0e7ff{% else %}#f8fafc{% endif %}; border: 1px solid {% if ver.id == doc.id %}#c7d2fe{% else %}#e2e8f0{% endif %};">
+                <div>
+                    <strong style="color: #4f46e5;">{{ ver.version }}</strong>
+                    <span style="font-size: 0.78rem; color: #64748b; margin-left: 6px;">{{ ver.upload_date.strftime('%b %d, %Y') }}</span>
+                </div>
+                <span class="badge status-{{ ver.review_status.replace(' ', '-') }}" style="font-size: 0.7rem;">{{ ver.review_status }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Linked Defects Table -->
+<div class="card" style="padding: 0;">
+    <div style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+        <h3 style="font-size: 1.1rem; font-weight: 700;">Defects Found in Document ({{ defects|length }})</h3>
+        <a href="{{ url_for('defects.create', document_id=doc.id, project_id=doc.project_id) }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Log Defect</a>
+    </div>
+    <div class="table-container" style="border: none; box-shadow: none; border-radius: 0;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Defect ID</th>
+                    <th>Title</th>
+                    <th>Version</th>
+                    <th>Location / Section</th>
+                    <th>Severity</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in defects %}
+                <tr>
+                    <td><strong style="color: #4f46e5;">{{ d.defect_code }}</strong></td>
+                    <td><a href="{{ url_for('defects.detail', defect_id=d.id) }}" style="font-weight: 600; color: #0f172a;">{{ d.title }}</a></td>
+                    <td><span style="font-weight: 700; color: #6366f1;">{{ d.document_version }}</span></td>
+                    <td><span style="font-size: 0.82rem; color: #64748b;">{{ d.page_section or 'General' }}</span></td>
+                    <td><span class="badge sev-{{ d.severity }}">{{ d.severity }}</span></td>
+                    <td><span class="badge" style="background: #f1f5f9; color: #475569;">{{ d.priority }}</span></td>
+                    <td><span class="badge status-{{ d.status.replace(' ', '-') }}">{{ d.status }}</span></td>
+                    <td><a href="{{ url_for('defects.detail', defect_id=d.id) }}" class="btn btn-secondary btn-sm"><i class="fas fa-eye"></i> View</a></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" style="text-align: center; color: #64748b; padding: 24px;">No defects registered for this document version.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

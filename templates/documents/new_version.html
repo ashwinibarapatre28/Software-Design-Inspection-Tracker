@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Create New Version - {{ existing_doc.name }} - DesignInspect{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Upload New Document Version</h1>
+        <p class="page-subtitle">Track revision changes for <strong>{{ existing_doc.name }}</strong></p>
+    </div>
+    <a href="{{ url_for('documents.detail', doc_id=existing_doc.id) }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Document</a>
+</div>
+
+<div class="card" style="max-width: 650px; margin: 0 auto;">
+    <div style="background: #e0e7ff; padding: 16px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #c7d2fe;">
+        <div style="font-weight: 700; color: #3730a3; font-size: 0.9rem;">Current Version: {{ existing_doc.version }}</div>
+        <div style="font-size: 0.82rem; color: #4338ca; margin-top: 2px;">Document Code: {{ existing_doc.doc_code }} | Project: {{ existing_doc.project.name }}</div>
+    </div>
+
+    <form action="{{ url_for('documents.create_version', doc_id=existing_doc.id) }}" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label class="form-label">New Version Tag *</label>
+            <input type="text" name="version" class="form-control" placeholder="e.g. v2.0, v1.1" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+                <label class="form-label">Size Metric Unit</label>
+                <select name="size_metric_type" class="form-select">
+                    <option value="Pages" {% if existing_doc.size_metric_type == 'Pages' %}selected{% endif %}>Pages</option>
+                    <option value="Lines of Code" {% if existing_doc.size_metric_type == 'Lines of Code' %}selected{% endif %}>Lines of Code</option>
+                    <option value="Function Points" {% if existing_doc.size_metric_type == 'Function Points' %}selected{% endif %}>Function Points</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Updated Size Value</label>
+                <input type="number" step="0.1" name="size_metric_value" class="form-control" value="{{ existing_doc.size_metric_value }}" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Upload Revised Document File</label>
+            <input type="file" name="file" class="form-control">
+        </div>
+
+        <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+            <a href="{{ url_for('documents.detail', doc_id=existing_doc.id) }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-code-branch"></i> Create Version Tag</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

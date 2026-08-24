@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Register Design Document - DesignInspect{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Register Design Document</h1>
+        <p class="page-subtitle">Add software design specifications, architecture manuals, or database schemas for inspection</p>
+    </div>
+    <a href="{{ url_for('documents.index') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Documents</a>
+</div>
+
+<div class="card" style="max-width: 750px; margin: 0 auto;">
+    <form action="{{ url_for('documents.create') }}" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label class="form-label">Target Project *</label>
+            <select name="project_id" class="form-select" required>
+                <option value="">Select Project...</option>
+                {% for p in projects %}
+                <option value="{{ p.id }}">{{ p.name }} ({{ p.project_code }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Document Name *</label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. Software Architecture Document, Database Design ERD" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Document Type *</label>
+                <select name="document_type" class="form-select" required>
+                    <option value="Software Architecture Document">Software Architecture Document</option>
+                    <option value="System Design Document">System Design Document</option>
+                    <option value="Database Design">Database Design</option>
+                    <option value="API Design">API Design</option>
+                    <option value="UML Diagram">UML Diagram</option>
+                    <option value="UI/UX Design">UI/UX Design</option>
+                    <option value="Technical Specification">Technical Specification</option>
+                    <option value="Module Design">Module Design</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Version Number *</label>
+                <input type="text" name="version" class="form-control" value="v1.0" placeholder="e.g. v1.0, v1.1" required>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Size Metric Unit</label>
+                <select name="size_metric_type" class="form-select">
+                    <option value="Pages">Pages (Document Count)</option>
+                    <option value="Lines of Code">Lines of Code (LOC)</option>
+                    <option value="Function Points">Function Points (FP)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Size Value (For Defect Density Metrics)</label>
+                <input type="number" step="0.1" name="size_metric_value" class="form-control" value="30.0" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Assigned Lead Reviewer</label>
+            <select name="reviewer_id" class="form-select">
+                <option value="">Select Reviewer...</option>
+                {% for r in reviewers %}
+                <option value="{{ r.id }}">{{ r.name }} ({{ r.role }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Upload Document File (Optional)</label>
+            <input type="file" name="file" class="form-control">
+            <span style="font-size: 0.75rem; color: #64748b;">Supported formats: PDF, DOCX, PNG, JPG, TXT, ZIP</span>
+        </div>
+
+        <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+            <a href="{{ url_for('documents.index') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Register Document</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
