@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule Inspection - DesignInspect{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Schedule Inspection Session</h1>
+        <p class="page-subtitle">Formally initiate design document inspection, architecture review, or peer walkthrough</p>
+    </div>
+    <a href="{{ url_for('inspections.index') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Inspections</a>
+</div>
+
+<div class="card" style="max-width: 750px; margin: 0 auto;">
+    <form action="{{ url_for('inspections.create') }}" method="POST">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Project *</label>
+                <select name="project_id" class="form-select" required>
+                    <option value="">Select Project...</option>
+                    {% for p in projects %}
+                    <option value="{{ p.id }}">{{ p.name }} ({{ p.project_code }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Target Design Document *</label>
+                <select name="document_id" class="form-select" required>
+                    <option value="">Select Document...</option>
+                    {% for doc in documents %}
+                    <option value="{{ doc.id }}">{{ doc.name }} ({{ doc.version }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Inspection Type *</label>
+                <select name="inspection_type" class="form-select" required>
+                    <option value="Formal Design Inspection">Formal Design Inspection</option>
+                    <option value="Peer Review">Peer Review</option>
+                    <option value="Architecture Review">Architecture Review</option>
+                    <option value="Technical Review">Technical Review</option>
+                    <option value="Security Review">Security Review</option>
+                    <option value="UI/UX Review">UI/UX Review</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Lead Reviewer *</label>
+                <select name="lead_reviewer_id" class="form-select" required>
+                    <option value="">Select Lead Reviewer...</option>
+                    {% for r in reviewers %}
+                    <option value="{{ r.id }}">{{ r.name }} ({{ r.role }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Inspection Date *</label>
+                <input type="date" name="inspection_date" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Initial Session Status</label>
+                <select name="status" class="form-select">
+                    <option value="Scheduled">Scheduled</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Review Team Members</label>
+            <input type="text" name="review_team" class="form-control" placeholder="e.g. Rahul Sharma, Elena Rostova, Sarah Jenkins">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Inspection Objectives & Summary Notes</label>
+            <textarea name="summary" class="form-control" rows="4" placeholder="Outline specific document sections, quality gates, and inspection goals..."></textarea>
+        </div>
+
+        <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+            <a href="{{ url_for('inspections.index') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-calendar-check"></i> Schedule Inspection</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

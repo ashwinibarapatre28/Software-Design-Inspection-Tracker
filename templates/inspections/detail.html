@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}{{ inspection.inspection_code }} - Inspection Details - DesignInspect{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+            <span class="badge" style="background: #e0e7ff; color: #3730a3; font-weight: 700;">{{ inspection.inspection_code }}</span>
+            <span class="badge status-{{ inspection.status.replace(' ', '-') }}">{{ inspection.status }}</span>
+        </div>
+        <h1 class="page-title">{{ inspection.inspection_type }}</h1>
+        <p class="page-subtitle">Project: <strong>{{ inspection.project.name }}</strong> | Target Document: <strong>{{ inspection.document.name }} ({{ inspection.document_version }})</strong></p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="{{ url_for('defects.create', inspection_id=inspection.id, document_id=inspection.document_id, project_id=inspection.project_id) }}" class="btn btn-primary"><i class="fas fa-plus"></i> Log Defect for Inspection</a>
+    </div>
+</div>
+
+<div class="grid-cols-3" style="grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 28px;">
+    <div class="card">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;">Inspection Session Information</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 0.9rem; margin-bottom: 20px;">
+            <div>
+                <div style="color: #64748b; font-size: 0.8rem; font-weight: 600;">Lead Reviewer</div>
+                <div style="font-weight: 600; color: #0f172a;">{{ inspection.lead_reviewer.name if inspection.lead_reviewer else 'N/A' }}</div>
+            </div>
+            <div>
+                <div style="color: #64748b; font-size: 0.8rem; font-weight: 600;">Inspection Date</div>
+                <div style="font-weight: 500;">{{ inspection.inspection_date.strftime('%B %d, %Y') }}</div>
+            </div>
+            <div style="grid-column: span 2;">
+                <div style="color: #64748b; font-size: 0.8rem; font-weight: 600;">Review Team Members</div>
+                <div style="font-weight: 500; color: #475569;">{{ inspection.review_team or 'Not specified' }}</div>
+            </div>
+        </div>
+
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 16px;">
+            <div style="color: #64748b; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px;">Executive Inspection Summary</div>
+            <p style="color: #0f172a; font-size: 0.9rem; line-height: 1.6;">{{ inspection.summary or 'No summary notes documented.' }}</p>
+        </div>
+
+        <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+            <form action="{{ url_for('inspections.update_status', inspection_id=inspection.id) }}" method="POST" style="display: flex; gap: 12px; align-items: center;">
+                <label style="font-weight: 600; font-size: 0.85rem;">Update Session Status:</label>
+                <select name="status" class="form-select" style="width: 200px;">
+                    <option value="Scheduled" {% if inspection.status == 'Scheduled' %}selected{% endif %}>Scheduled</option>
+                    <option value="In Progress" {% if inspection.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                    <option value="Completed" {% if inspection.status == 'Completed' %}selected{% endif %}>Completed</option>
+                    <option value="Cancelled" {% if inspection.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+                <button type="submit" class="btn btn-secondary btn-sm">Update Status</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;">Session Defects Breakdown</h3>
+            <div style="font-size: 2.2rem; font-weight: 800; color: #4f46e5;">{{ defects|length }}</div>
+            <div style="font-size: 0.85rem; color: #64748b; font-weight: 600; margin-bottom: 20px;">Total Defects Logged</div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem;">
+                <div style="display: flex; justify-content: space-between;"><span>Critical Defects:</span><strong style="color: #ef4444;">{{ critical_count }}</strong></div>
+                <div style="display: flex; justify-content: space-between;"><span>High Defects:</span><strong style="color: #f97316;">{{ high_count }}</strong></div>
+                <div style="display: flex; justify-content: space-between;"><span>Verified & Closed:</span><strong style="color: #10b981;">{{ closed_count }}</strong></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Logged Defects Table -->
+<div class="card" style="padding: 0;">
+    <div style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+        <h3 style="font-size: 1.1rem; font-weight: 700;">Defects Identified during this Inspection</h3>
+    </div>
+    <div class="table-container" style="border: none; box-shadow: none; border-radius: 0;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Defect ID</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Severity</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Assignee</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in defects %}
+                <tr>
+                    <td><strong style="color: #4f46e5;">{{ d.defect_code }}</strong></td>
+                    <td><a href="{{ url_for('defects.detail', defect_id=d.id) }}" style="font-weight: 600; color: #0f172a;">{{ d.title }}</a></td>
+                    <td><span style="font-size: 0.8rem; color: #64748b;">{{ d.category.name if d.category else 'General' }}</span></td>
+                    <td><span class="badge sev-{{ d.severity }}">{{ d.severity }}</span></td>
+                    <td><span class="badge" style="background: #f1f5f9; color: #475569;">{{ d.priority }}</span></td>
+                    <td><span class="badge status-{{ d.status.replace(' ', '-') }}">{{ d.status }}</span></td>
+                    <td>{{ d.assignee.name if d.assignee else 'Unassigned' }}</td>
+                    <td><a href="{{ url_for('defects.detail', defect_id=d.id) }}" class="btn btn-secondary btn-sm"><i class="fas fa-eye"></i> View</a></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" style="text-align: center; color: #64748b; padding: 24px;">No defects logged for this inspection session.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

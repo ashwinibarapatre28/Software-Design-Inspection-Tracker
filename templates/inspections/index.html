@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Inspections - DesignInspect{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Inspection Sessions</h1>
+        <p class="page-subtitle">Schedule, manage, and record formal design document inspection sessions and peer reviews</p>
+    </div>
+    <a href="{{ url_for('inspections.create') }}" class="btn btn-primary">
+        <i class="fas fa-calendar-plus"></i> Schedule Inspection
+    </a>
+</div>
+
+<!-- Filters Bar -->
+<div class="card" style="margin-bottom: 24px; padding: 16px 20px;">
+    <form method="GET" action="{{ url_for('inspections.index') }}" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+        <div style="width: 220px;">
+            <select name="project_id" class="form-select" onchange="this.form.submit()">
+                <option value="">All Projects</option>
+                {% for p in projects %}
+                <option value="{{ p.id }}" {% if selected_project == p.id %}selected{% endif %}>{{ p.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="width: 220px;">
+            <select name="type" class="form-select" onchange="this.form.submit()">
+                <option value="all">All Inspection Types</option>
+                <option value="Formal Design Inspection" {% if type_filter == 'Formal Design Inspection' %}selected{% endif %}>Formal Design Inspection</option>
+                <option value="Peer Review" {% if type_filter == 'Peer Review' %}selected{% endif %}>Peer Review</option>
+                <option value="Architecture Review" {% if type_filter == 'Architecture Review' %}selected{% endif %}>Architecture Review</option>
+                <option value="Technical Review" {% if type_filter == 'Technical Review' %}selected{% endif %}>Technical Review</option>
+                <option value="Security Review" {% if type_filter == 'Security Review' %}selected{% endif %}>Security Review</option>
+                <option value="UI/UX Review" {% if type_filter == 'UI/UX Review' %}selected{% endif %}>UI/UX Review</option>
+            </select>
+        </div>
+        <div style="width: 180px;">
+            <select name="status" class="form-select" onchange="this.form.submit()">
+                <option value="all">All Statuses</option>
+                <option value="Scheduled" {% if status_filter == 'Scheduled' %}selected{% endif %}>Scheduled</option>
+                <option value="In Progress" {% if status_filter == 'In Progress' %}selected{% endif %}>In Progress</option>
+                <option value="Completed" {% if status_filter == 'Completed' %}selected{% endif %}>Completed</option>
+                <option value="Cancelled" {% if status_filter == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-secondary"><i class="fas fa-filter"></i> Filter</button>
+    </form>
+</div>
+
+<!-- Inspections Data Table -->
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Inspection Code</th>
+                <th>Inspection Type</th>
+                <th>Target Document</th>
+                <th>Version</th>
+                <th>Lead Reviewer</th>
+                <th>Inspection Date</th>
+                <th>Status</th>
+                <th>Defects Logged</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for insp in inspections %}
+            <tr>
+                <td><strong style="color: #4f46e5;">{{ insp.inspection_code }}</strong></td>
+                <td><span style="font-weight: 600; color: #0f172a;">{{ insp.inspection_type }}</span></td>
+                <td><a href="{{ url_for('documents.detail', doc_id=insp.document.id) }}">{{ insp.document.name }}</a></td>
+                <td><strong style="color: #6366f1;">{{ insp.document_version }}</strong></td>
+                <td>{{ insp.lead_reviewer.name if insp.lead_reviewer else 'N/A' }}</td>
+                <td><span style="font-size: 0.85rem; color: #64748b;">{{ insp.inspection_date.strftime('%b %d, %Y') }}</span></td>
+                <td><span class="badge status-{{ insp.status.replace(' ', '-') }}">{{ insp.status }}</span></td>
+                <td><span class="badge" style="background: #e0e7ff; color: #3730a3;">{{ insp.defects|length }} Defects</span></td>
+                <td><a href="{{ url_for('inspections.detail', inspection_id=insp.id) }}" class="btn btn-secondary btn-sm"><i class="fas fa-eye"></i> Details</a></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="9" style="text-align: center; color: #64748b; padding: 36px;">No inspection sessions recorded.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
