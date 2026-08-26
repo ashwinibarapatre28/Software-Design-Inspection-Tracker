@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}My Assigned Tasks - DesignInspect{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">My Assigned Defect Tasks</h1>
+        <p class="page-subtitle">Direct action center for defects assigned to <strong>{{ session.get('user_name') }}</strong></p>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 28px; padding: 0;">
+    <div style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; background: #faf5ff;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #6b21a8;"><i class="fas fa-exclamation-circle"></i> Open Action Items ({{ open_tasks|length }})</h3>
+    </div>
+    <div class="table-container" style="border: none; box-shadow: none; border-radius: 0;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Defect ID</th>
+                    <th>Title</th>
+                    <th>Project</th>
+                    <th>Document & Version</th>
+                    <th>Severity</th>
+                    <th>Priority</th>
+                    <th>Current Status</th>
+                    <th>Due Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in open_tasks %}
+                <tr>
+                    <td><strong style="color: #4f46e5;">{{ d.defect_code }}</strong></td>
+                    <td><a href="{{ url_for('defects.detail', defect_id=d.id) }}" style="font-weight: 700; color: #0f172a;">{{ d.title }}</a></td>
+                    <td>{{ d.project.name if d.project else '' }}</td>
+                    <td>{{ d.document.name if d.document else '' }} ({{ d.document_version }})</td>
+                    <td><span class="badge sev-{{ d.severity }}">{{ d.severity }}</span></td>
+                    <td><span class="badge" style="background: #f1f5f9; color: #475569;">{{ d.priority }}</span></td>
+                    <td><span class="badge status-{{ d.status.replace(' ', '-') }}">{{ d.status }}</span></td>
+                    <td><span style="font-size: 0.82rem; font-weight: 600; color: #dc2626;">{{ d.due_date.strftime('%b %d, %Y') if d.due_date else 'No due date' }}</span></td>
+                    <td><a href="{{ url_for('defects.detail', defect_id=d.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-pen-to-square"></i> Work on Defect</a></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="9" style="text-align: center; color: #64748b; padding: 28px;">You have no open assigned defect tasks! 🎉</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card" style="padding: 0;">
+    <div style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; background: #f0fdf4;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #047857;"><i class="fas fa-check-circle"></i> Resolved & Completed Tasks ({{ completed_tasks|length }})</h3>
+    </div>
+    <div class="table-container" style="border: none; box-shadow: none; border-radius: 0;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Defect ID</th>
+                    <th>Title</th>
+                    <th>Severity</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in completed_tasks %}
+                <tr>
+                    <td><strong style="color: #4f46e5;">{{ d.defect_code }}</strong></td>
+                    <td><a href="{{ url_for('defects.detail', defect_id=d.id) }}" style="font-weight: 600; color: #0f172a;">{{ d.title }}</a></td>
+                    <td><span class="badge sev-{{ d.severity }}">{{ d.severity }}</span></td>
+                    <td><span class="badge status-{{ d.status.replace(' ', '-') }}">{{ d.status }}</span></td>
+                    <td><a href="{{ url_for('defects.detail', defect_id=d.id) }}" class="btn btn-secondary btn-sm"><i class="fas fa-eye"></i> View History</a></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" style="text-align: center; color: #64748b; padding: 24px;">No completed tasks found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

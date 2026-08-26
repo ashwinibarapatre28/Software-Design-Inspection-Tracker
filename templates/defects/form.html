@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Defect - DesignInspect{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ action }} Design Defect</h1>
+        <p class="page-subtitle">Log software design flaws, architectural mismatches, security vulnerabilities, or interface errors</p>
+    </div>
+    <a href="{{ url_for('defects.index') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Defects</a>
+</div>
+
+<div class="card" style="max-width: 850px; margin: 0 auto;">
+    <form action="{{ url_for('defects.create') }}" method="POST" enctype="multipart/form-data">
+        
+        <!-- Section 1: Basic Scope -->
+        <h3 style="font-size: 1.05rem; font-weight: 700; color: #4f46e5; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0;">
+            1. Basic Scope & Location
+        </h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Project *</label>
+                <select name="project_id" class="form-select" required>
+                    <option value="">Select Project...</option>
+                    {% for p in projects %}
+                    <option value="{{ p.id }}">{{ p.name }} ({{ p.project_code }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Target Design Document *</label>
+                <select name="document_id" class="form-select" required>
+                    <option value="">Select Document...</option>
+                    {% for doc in documents %}
+                    <option value="{{ doc.id }}">{{ doc.name }} ({{ doc.version }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Associated Inspection Session (Optional)</label>
+                <select name="inspection_id" class="form-select">
+                    <option value="">No Inspection Session (Standalone Defect)</option>
+                    {% for insp in inspections %}
+                    <option value="{{ insp.id }}">{{ insp.inspection_code }} - {{ insp.inspection_type }} ({{ insp.inspection_date.strftime('%Y-%m-%d') }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Page / Section / Diagram Reference *</label>
+                <input type="text" name="page_section" class="form-control" placeholder="e.g. Page 14, Section 3.2, Diagram 4.1" required>
+            </div>
+        </div>
+
+        <!-- Section 2: Defect Details -->
+        <h3 style="font-size: 1.05rem; font-weight: 700; color: #4f46e5; margin: 24px 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0;">
+            2. Defect Details & Classification
+        </h3>
+
+        <div class="form-group">
+            <label class="form-label">Defect Title *</label>
+            <input type="text" name="title" class="form-control" placeholder="Summarize the design issue (e.g. Database relationship inconsistency in Account entity)" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Detailed Description *</label>
+            <textarea name="description" class="form-control" rows="4" placeholder="Explain the defect in detail, expected behavior vs observed design error, and potential system impact..." required></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+                <label class="form-label">Defect Category *</label>
+                <select name="category_id" class="form-select" required>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Severity Level *</label>
+                <select name="severity" class="form-select" required>
+                    <option value="Critical">Critical (System failure / severe security risk)</option>
+                    <option value="High" selected>High (Significant design flaw needing immediate fix)</option>
+                    <option value="Medium">Medium (Moderate design issue)</option>
+                    <option value="Low">Low (Minor issue)</option>
+                    <option value="Cosmetic">Cosmetic (Formatting, naming, presentation typo)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Priority Level *</label>
+                <select name="priority" class="form-select" required>
+                    <option value="Urgent">Urgent</option>
+                    <option value="High" selected>High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Section 3: Assignment & Recommendations -->
+        <h3 style="font-size: 1.05rem; font-weight: 700; color: #4f46e5; margin: 24px 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0;">
+            3. Assignment & Correction Recommendations
+        </h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Assign Developer</label>
+                <select name="assigned_to_id" class="form-select">
+                    <option value="">Leave Unassigned (New)</option>
+                    {% for tm in team_members %}
+                    <option value="{{ tm.id }}">{{ tm.name }} ({{ tm.role }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Resolution Due Date</label>
+                <input type="date" name="due_date" class="form-control">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Recommended Fix / Architectural Guidance</label>
+            <textarea name="recommended_fix" class="form-control" rows="3" placeholder="Provide recommended correction approach or architectural guidelines for the developer..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Reviewer Comments</label>
+            <textarea name="reviewer_comments" class="form-control" rows="2" placeholder="Additional reviewer context or quality notes..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Attachment (Optional screenshot or diagram file)</label>
+            <input type="file" name="attachment" class="form-control">
+        </div>
+
+        <div style="margin-top: 28px; display: flex; justify-content: flex-end; gap: 12px;">
+            <a href="{{ url_for('defects.index') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-bug"></i> Log Defect into Tracker</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

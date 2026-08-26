@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}{{ defect.defect_code }} - {{ defect.title }} - DesignInspect{% endblock %}
+
+{% block content %}
+<!-- Top Header Banner -->
+<div class="page-header">
+    <div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <strong style="font-size: 1.1rem; color: #4f46e5; background: #e0e7ff; padding: 4px 10px; border-radius: 6px;">{{ defect.defect_code }}</strong>
+            <span class="badge sev-{{ defect.severity }}">{{ defect.severity }} Severity</span>
+            <span class="badge" style="background: #f1f5f9; color: #475569;">{{ defect.priority }} Priority</span>
+            <span class="badge status-{{ defect.status.replace(' ', '-') }}" style="font-size: 0.85rem; padding: 4px 12px;">{{ defect.status }}</span>
+        </div>
+        <h1 class="page-title">{{ defect.title }}</h1>
+        <p class="page-subtitle">Project: <strong>{{ defect.project.name if defect.project else 'N/A' }}</strong> | Reported: {{ defect.created_at.strftime('%B %d, %Y - %H:%M') }}</p>
+    </div>
+
+    <!-- Quick Action Controls -->
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        {% if defect.status not in ['Closed', 'Rejected'] %}
+        <button class="btn btn-primary" onclick="document.getElementById('statusModal').classList.add('active')">
+            <i class="fas fa-arrows-rotate"></i> Change Status
+        </button>
+        {% endif %}
+
+        {% if defect.status in ['Resolved', 'Under Verification', 'Closed'] %}
+        <button class="btn btn-danger" onclick="document.getElementById('reopenModal').classList.add('active')">
+            <i class="fas fa-rotate-left"></i> Reopen Defect
+        </button>
+        {% endif %}
+
+        <button class="btn btn-secondary" onclick="document.getElementById('assignModal').classList.add('active')">
+            <i class="fas fa-user-plus"></i> Assign
+        </button>
+    </div>
+</div>
+
+<div class="grid-cols-3" style="grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 32px;">
+    <!-- Left Column: Defect Information, Location, Recommendation & Comments -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+        
+        <!-- Description & Location Card -->
+        <div class="card">
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; color: #0f172a;">Defect Description</h3>
+            <p style="color: #334155; font-size: 0.95rem; line-height: 1.6; white-space: pre-line; margin-bottom: 20px;">{{ defect.description }}</p>
+
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">Exact Design Document Location</h4>
+            <div style="background: #f8fafc; padding: 14px 18px; border-radius: 10px; border: 1px solid #e2e8f0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.88rem;">
+                <div><strong>Document:</strong> <a href="{{ url_for('documents.detail', doc_id=defect.document.id) }}">{{ defect.document.name if defect.document else 'N/A' }}</a></div>
+                <div><strong>Document Version:</strong> <span style="font-weight: 700; color: #4f46e5;">{{ defect.document_version }}</span></div>
+                <div><strong>Module / Component:</strong> {{ defect.location or 'Not specified' }}</div>
+                <div><strong>Page / Section:</strong> <span style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: 600;">{{ defect.page_section or 'N/A' }}</span></div>
+            </div>
+        </div>
+
+        <!-- Recommended Fix & Comments Card -->
+        <div class="card">
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; color: #0f172a;">Recommended Fix & Developer Notes</h3>
+            
+            <div style="margin-bottom: 16px;">
+                <strong style="font-size: 0.85rem; color: #64748b;">Recommended Fix (By Reviewer):</strong>
+                <div style="background: #ecfdf5; padding: 12px 16px; border-radius: 8px; border: 1px solid #a7f3d0; color: #065f46; margin-top: 4px; font-size: 0.9rem;">
+                    {{ defect.recommended_fix or 'No recommendation provided.' }}
+                </div>
+            </div>
+
+            {% if defect.reviewer_comments %}
+            <div style="margin-bottom: 16px;">
+                <strong style="font-size: 0.85rem; color: #64748b;">Reviewer Notes:</strong>
+                <p style="font-size: 0.9rem; color: #475569; margin-top: 4px;">{{ defect.reviewer_comments }}</p>
+            </div>
+            {% endif %}
+
+            {% if defect.developer_comments %}
+            <div>
+                <strong style="font-size: 0.85rem; color: #64748b;">Developer Resolution Notes:</strong>
+                <div style="background: #eff6ff; padding: 12px 16px; border-radius: 8px; border: 1px solid #bfdbfe; color: #1e40af; margin-top: 4px; font-size: 0.9rem;">
+                    {{ defect.developer_comments }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Comments & Collaboration Feed -->
+        <div class="card">
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;">Discussion & Reviewer Collaboration</h3>
+            
+            <!-- Comment Input Form -->
+            <form action="{{ url_for('defects.add_comment', defect_id=defect.id) }}" method="POST" style="margin-bottom: 24px;">
+                <div class="form-group">
+                    <textarea name="comment_text" class="form-control" placeholder="Add a comment, technical clarification, or verification note..." rows="3" required></textarea>
+                </div>
+                <div style="display: flex; justify-content: flex-end;">
+                    <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-paper-plane"></i> Post Comment</button>
+                </div>
+            </form>
+
+            <div class="comments-list">
+                {% for c in comments %}
+                <div class="comment-card">
+                    <div class="comment-header">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div class="user-avatar-sm" style="width: 28px; height: 28px; font-size: 0.75rem;">{{ c.user.name[0] if c.user else 'U' }}</div>
+                            <strong style="font-size: 0.88rem; color: #0f172a;">{{ c.user.name if c.user else 'Unknown' }}</strong>
+                            <span class="role-badge {{ c.user.role.replace(' ', '-') if c.user else '' }}" style="font-size: 0.65rem;">{{ c.user.role if c.user else '' }}</span>
+                        </div>
+                        <span style="font-size: 0.75rem; color: #94a3b8;">{{ c.created_at.strftime('%b %d, %H:%M') }}</span>
+                    </div>
+                    <div style="font-size: 0.9rem; color: #334155; padding-left: 36px; line-height: 1.5;">
+                        {{ c.comment_text }}
+                    </div>
+                </div>
+                {% else %}
+                <p style="font-size: 0.85rem; color: #94a3b8; text-align: center; padding: 16px;">No comments posted yet. Start the discussion!</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: People, Metadata & Activity Timeline -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+        <!-- People & Assignment Card -->
+        <div class="card">
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;">Assignment & Workflow</h3>
+            
+            <div style="display: flex; flex-direction: column; gap: 14px; font-size: 0.88rem;">
+                <div>
+                    <div style="color: #64748b; font-size: 0.78rem; font-weight: 600;">Reported By (Reviewer)</div>
+                    <div style="font-weight: 600; color: #0f172a; margin-top: 2px;">
+                        <i class="fas fa-user-shield" style="color: #4f46e5;"></i> {{ defect.reporter.name if defect.reporter else 'N/A' }}
+                    </div>
+                </div>
+
+                <div>
+                    <div style="color: #64748b; font-size: 0.78rem; font-weight: 600;">Assigned Developer</div>
+                    <div style="font-weight: 600; color: #0f172a; margin-top: 2px;">
+                        {% if defect.assignee %}
+                        <i class="fas fa-user-gear" style="color: #10b981;"></i> {{ defect.assignee.name }}
+                        {% else %}
+                        <span style="color: #ef4444; font-style: italic;">Unassigned</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <div style="color: #64748b; font-size: 0.78rem; font-weight: 600;">Defect Category</div>
+                    <div style="font-weight: 600; color: #0f172a; margin-top: 2px;">
+                        <i class="fas fa-tag" style="color: #6366f1;"></i> {{ defect.category.name if defect.category else 'General' }}
+                    </div>
+                </div>
+
+                <div>
+                    <div style="color: #64748b; font-size: 0.78rem; font-weight: 600;">Target Due Date</div>
+                    <div style="font-weight: 700; color: #dc2626; margin-top: 2px;">
+                        <i class="fas fa-calendar-day"></i> {{ defect.due_date.strftime('%B %d, %Y') if defect.due_date else 'No due date set' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Timeline Card -->
+        <div class="card">
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;">Activity Timeline & Audit</h3>
+            <div class="timeline" style="margin-top: 0;">
+                {% for act in activities %}
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div style="font-weight: 700; font-size: 0.85rem; color: #0f172a;">{{ act.action }}</div>
+                        <div style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">
+                            By {{ act.user.name if act.user else 'System' }}
+                            {% if act.new_value %} • <span style="font-weight: 600; color: #4f46e5;">{{ act.new_value }}</span>{% endif %}
+                        </div>
+                        <div class="timeline-date" style="margin-top: 4px;">{{ act.timestamp.strftime('%b %d, %Y - %H:%M') }}</div>
+                    </div>
+                </div>
+                {% else %}
+                <p style="font-size: 0.85rem; color: #94a3b8;">No audit history found.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 1: Status Change Modal -->
+<div class="modal-backdrop" id="statusModal">
+    <div class="modal-card">
+        <form action="{{ url_for('defects.update_status', defect_id=defect.id) }}" method="POST">
+            <div class="modal-header">
+                <h3 style="font-size: 1.1rem; font-weight: 700;">Update Defect Lifecycle Status</h3>
+                <button type="button" onclick="document.getElementById('statusModal').classList.remove('active')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">New Status Stage</label>
+                    <select name="status" class="form-select" required>
+                        <option value="New" {% if defect.status == 'New' %}selected{% endif %}>New</option>
+                        <option value="Assigned" {% if defect.status == 'Assigned' %}selected{% endif %}>Assigned</option>
+                        <option value="In Progress" {% if defect.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                        <option value="Resolved" {% if defect.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                        <option value="Under Verification" {% if defect.status == 'Under Verification' %}selected{% endif %}>Under Verification</option>
+                        <option value="Closed" {% if defect.status == 'Closed' %}selected{% endif %}>Closed</option>
+                        <option value="Deferred" {% if defect.status == 'Deferred' %}selected{% endif %}>Deferred</option>
+                        <option value="Rejected" {% if defect.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Resolution / Change Comment (Optional)</label>
+                    <textarea name="resolution_comment" class="form-control" rows="3" placeholder="State resolution details, document section revised, or reason..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('statusModal').classList.remove('active')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Apply Status</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal 2: Reopen Defect Modal -->
+<div class="modal-backdrop" id="reopenModal">
+    <div class="modal-card">
+        <form action="{{ url_for('defects.reopen', defect_id=defect.id) }}" method="POST">
+            <div class="modal-header" style="background: #fef2f2;">
+                <h3 style="font-size: 1.1rem; font-weight: 700; color: #dc2626;"><i class="fas fa-rotate-left"></i> Reopen Defect</h3>
+                <button type="button" onclick="document.getElementById('reopenModal').classList.remove('active')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.9rem; color: #475569; margin-bottom: 16px;">Specify why the resolution was unverified or rejected by the reviewer:</p>
+                <div class="form-group">
+                    <label class="form-label">Reason for Reopening *</label>
+                    <textarea name="reason" class="form-control" rows="4" placeholder="e.g. Verified document version v2.0; ER diagram relationship still missing cascade delete constraint..." required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('reopenModal').classList.remove('active')">Cancel</button>
+                <button type="submit" class="btn btn-danger"><i class="fas fa-rotate-left"></i> Reopen & Notify Developer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal 3: Assign Developer Modal -->
+<div class="modal-backdrop" id="assignModal">
+    <div class="modal-card">
+        <form action="{{ url_for('defects.assign', defect_id=defect.id) }}" method="POST">
+            <div class="modal-header">
+                <h3 style="font-size: 1.1rem; font-weight: 700;">Assign Defect to Team Member</h3>
+                <button type="button" onclick="document.getElementById('assignModal').classList.remove('active')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Select Assignee</label>
+                    <select name="assigned_to_id" class="form-select" required>
+                        <option value="">Choose Developer / Team Member...</option>
+                        {% for tm in team_members %}
+                        <option value="{{ tm.id }}" {% if defect.assigned_to_id == tm.id %}selected{% endif %}>{{ tm.name }} ({{ tm.role }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('assignModal').classList.remove('active')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-user-check"></i> Assign Task</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
