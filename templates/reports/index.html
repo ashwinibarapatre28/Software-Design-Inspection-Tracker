@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Inspection Reports - DesignInspect{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Inspection Reports Generator</h1>
+        <p class="page-subtitle">Generate comprehensive defect summary reports, metrics breakdowns, and exportable audit documents</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="{{ url_for('reports.print_pdf', project_id=selected_project.id if selected_project else '', document_id=selected_doc.id if selected_doc else '') }}" target="_blank" class="btn btn-primary">
+            <i class="fas fa-file-pdf"></i> Printable / PDF Report
+        </a>
+        <a href="{{ url_for('reports.export_csv', project_id=selected_project.id if selected_project else '') }}" class="btn btn-secondary">
+            <i class="fas fa-file-csv"></i> Export CSV
+        </a>
+        <a href="{{ url_for('reports.export_json', project_id=selected_project.id if selected_project else '') }}" class="btn btn-secondary">
+            <i class="fas fa-code"></i> Export JSON
+        </a>
+    </div>
+</div>
+
+<!-- Report Filter Card -->
+<div class="card" style="margin-bottom: 28px; padding: 20px;">
+    <form method="GET" action="{{ url_for('reports.index') }}" style="display: grid; grid-template-columns: repeat(3, 1fr) auto; gap: 16px; align-items: flex-end;">
+        <div>
+            <label class="form-label">Report Category</label>
+            <select name="type" class="form-select" onchange="this.form.submit()">
+                <option value="Project Defect Report" {% if report_type == 'Project Defect Report' %}selected{% endif %}>Project Defect Report</option>
+                <option value="Inspection Summary" {% if report_type == 'Inspection Summary' %}selected{% endif %}>Inspection Summary</option>
+                <option value="Open Defects Report" {% if report_type == 'Open Defects Report' %}selected{% endif %}>Open Defects Report</option>
+                <option value="Critical Defects Report" {% if report_type == 'Critical Defects Report' %}selected{% endif %}>Critical Defects Report</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="form-label">Select Project Scope</label>
+            <select name="project_id" class="form-select" onchange="this.form.submit()">
+                <option value="">All Projects</option>
+                {% for p in projects %}
+                <option value="{{ p.id }}" {% if selected_project and selected_project.id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label class="form-label">Select Document Scope</label>
+            <select name="document_id" class="form-select" onchange="this.form.submit()">
+                <option value="">All Design Documents</option>
+                {% for doc in documents %}
+                <option value="{{ doc.id }}" {% if selected_doc and selected_doc.id == doc.id %}selected{% endif %}>{{ doc.name }} ({{ doc.version }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary"><i class="fas fa-arrows-rotate"></i> Generate Report</button>
+    </form>
+</div>
+
+<!-- Inspection Metrics Banner -->
+<div class="grid-cols-4" style="margin-bottom: 28px;">
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Defect Density</div>
+            <div class="metric-val" style="color: #4f46e5;">{{ metrics.defect_density }}</div>
+            <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Defects / Document Unit</div>
+        </div>
+        <div class="metric-icon indigo"><i class="fas fa-calculator"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Defect Removal Efficiency</div>
+            <div class="metric-val" style="color: #10b981;">{{ metrics.dre_percentage }}%</div>
+            <div style="font-size: 0.75rem; color: #10b981; margin-top: 4px;">DRE % Metric</div>
+        </div>
+        <div class="metric-icon emerald"><i class="fas fa-shield-halved"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Closure Rate</div>
+            <div class="metric-val" style="color: #0284c7;">{{ metrics.closure_rate }}%</div>
+            <div style="font-size: 0.75rem; color: #0284c7; margin-top: 4px;">Closed / Total</div>
+        </div>
+        <div class="metric-icon sky"><i class="fas fa-circle-check"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Avg Resolution Time</div>
+            <div class="metric-val" style="color: #f59e0b;">{{ metrics.avg_resolution_time }} Days</div>
+            <div style="font-size: 0.75rem; color: #f59e0b; margin-top: 4px;">Created to Resolved</div>
+        </div>
+        <div class="metric-icon amber"><i class="fas fa-stopwatch"></i></div>
+    </div>
+</div>
+
+<!-- Defect Breakdown Summary Cards -->
+<div class="card" style="margin-bottom: 28px;">
+    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;">Severity Distribution Breakdown</h3>
+    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+        <div style="flex: 1; background: #fef2f2; border: 1px solid #fecaca; padding: 14px; border-radius: 10px; text-align: center;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: #dc2626;">CRITICAL</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #dc2626; margin-top: 4px;">{{ critical_count }}</div>
+        </div>
+        <div style="flex: 1; background: #fff7ed; border: 1px solid #fed7aa; padding: 14px; border-radius: 10px; text-align: center;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: #ea580c;">HIGH</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #ea580c; margin-top: 4px;">{{ high_count }}</div>
+        </div>
+        <div style="flex: 1; background: #fefce8; border: 1px solid #fef08a; padding: 14px; border-radius: 10px; text-align: center;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: #ca8a04;">MEDIUM</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #ca8a04; margin-top: 4px;">{{ medium_count }}</div>
+        </div>
+        <div style="flex: 1; background: #eff6ff; border: 1px solid #bfdbfe; padding: 14px; border-radius: 10px; text-align: center;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: #2563eb;">LOW</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #2563eb; margin-top: 4px;">{{ low_count }}</div>
+        </div>
+        <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px; border-radius: 10px; text-align: center;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: #64748b;">COSMETIC</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #64748b; margin-top: 4px;">{{ cosmetic_count }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Defects Table -->
+<div class="card" style="padding: 0;">
+    <div style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0;">
+        <h3 style="font-size: 1.1rem; font-weight: 700;">Report Details Data Table ({{ defects|length }} Defects)</h3>
+    </div>
+    <div class="table-container" style="border: none; box-shadow: none; border-radius: 0;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Defect ID</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Severity</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in defects %}
+                <tr>
+                    <td><strong style="color: #4f46e5;">{{ d.defect_code }}</strong></td>
+                    <td><a href="{{ url_for('defects.detail', defect_id=d.id) }}" style="font-weight: 600; color: #0f172a;">{{ d.title }}</a></td>
+                    <td>{{ d.category.name if d.category else 'General' }}</td>
+                    <td><span class="badge sev-{{ d.severity }}">{{ d.severity }}</span></td>
+                    <td><span class="badge" style="background: #f1f5f9; color: #475569;">{{ d.priority }}</span></td>
+                    <td><span class="badge status-{{ d.status.replace(' ', '-') }}">{{ d.status }}</span></td>
+                    <td>{{ d.assignee.name if d.assignee else 'Unassigned' }}</td>
+                    <td style="max-width: 200px; font-size: 0.8rem; color: #475569; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        {{ d.developer_comments or d.recommended_fix or 'N/A' }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" style="text-align: center; color: #64748b; padding: 24px;">No defects matching report criteria.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

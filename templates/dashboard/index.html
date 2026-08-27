@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Overview - DesignInspect{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Inspection Dashboard</h1>
+        <p class="page-subtitle">Centralized inspection metrics, defect workflow status, and project health overview</p>
+    </div>
+    <div style="display: flex; gap: 12px;">
+        <a href="{{ url_for('defects.create') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Log Defect
+        </a>
+        <a href="{{ url_for('inspections.create') }}" class="btn btn-secondary">
+            <i class="fas fa-calendar-plus"></i> Schedule Inspection
+        </a>
+    </div>
+</div>
+
+<!-- 6 Summary Metric Cards -->
+<div class="grid-cols-3" style="margin-bottom: 24px;">
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Active Projects</div>
+            <div class="metric-val">{{ total_projects }}</div>
+            <div style="font-size: 0.75rem; color: #10b981; font-weight: 600; margin-top: 4px;">
+                <i class="fas fa-layer-group"></i> Active inspection scopes
+            </div>
+        </div>
+        <div class="metric-icon sky">
+            <i class="fas fa-folder-open"></i>
+        </div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Design Documents</div>
+            <div class="metric-val">{{ total_documents }}</div>
+            <div style="font-size: 0.75rem; color: #6366f1; font-weight: 600; margin-top: 4px;">
+                <i class="fas fa-file-lines"></i> Architecture & specs
+            </div>
+        </div>
+        <div class="metric-icon indigo">
+            <i class="fas fa-file-code"></i>
+        </div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Open Defects</div>
+            <div class="metric-val" style="color: #4f46e5;">{{ open_defects }}</div>
+            <div style="font-size: 0.75rem; color: #f59e0b; font-weight: 600; margin-top: 4px;">
+                <i class="fas fa-clock"></i> Pending correction
+            </div>
+        </div>
+        <div class="metric-icon amber">
+            <i class="fas fa-bug"></i>
+        </div>
+    </div>
+</div>
+
+<div class="grid-cols-3" style="margin-bottom: 32px;">
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Critical Defects</div>
+            <div class="metric-val" style="color: #ef4444;">{{ critical_defects }}</div>
+            <div style="font-size: 0.75rem; color: #ef4444; font-weight: 600; margin-top: 4px;">
+                <i class="fas fa-triangle-exclamation"></i> High impact issue
+            </div>
+        </div>
+        <div class="metric-icon red">
+            <i class="fas fa-radiation"></i>
+        </div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Resolved Defects</div>
+            <div class="metric-val" style="color: #10b981;">{{ resolved_defects }}</div>
+            <div style="font-size: 0.75rem; color: #10b981; font-weight: 600; margin-top: 4px;">
+                <i class="fas fa-check-double"></i> Fixed or closed
+            </div>
+        </div>
+        <div class="metric-icon emerald">
+            <i class="fas fa-circle-check"></i>
+        </div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Pending Verification</div>
+            <div class="metric-val" style="color: #0284c7;">{{ pending_verification }}</div>
+            <div style="font-size: 0.75rem; color: #0284c7; font-weight: 600; margin-top: 4px;">
+                <i class="fas fa-user-check"></i> Awaiting reviewer re-check
+            </div>
+        </div>
+        <div class="metric-icon sky">
+            <i class="fas fa-clipboard-check"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="grid-cols-2" style="margin-bottom: 32px;">
+    <div class="card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: #0f172a;">Defects by Severity</h3>
+            <span style="font-size: 0.78rem; color: #64748b; font-weight: 600;">Distribution</span>
+        </div>
+        <div style="height: 260px; position: relative;">
+            <canvas id="severityChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: #0f172a;">Defects by Category</h3>
+            <a href="{{ url_for('analytics.index') }}" style="font-size: 0.78rem; font-weight: 600;">View Analytics <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div style="height: 260px; position: relative;">
+            <canvas id="categoryChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Section: Recent Defects & Activity Feed -->
+<div class="grid-cols-3" style="grid-template-columns: 2fr 1fr; gap: 24px;">
+    <div class="card" style="padding: 0;">
+        <div style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+            <h3 style="font-size: 1.1rem; font-weight: 700;">Recent Defect Activity</h3>
+            <a href="{{ url_for('defects.index') }}" class="btn btn-secondary btn-sm">View All Defects</a>
+        </div>
+        <div class="table-container" style="border: none; box-shadow: none; border-radius: 0;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Defect ID</th>
+                        <th>Title</th>
+                        <th>Severity</th>
+                        <th>Status</th>
+                        <th>Assignee</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for defect in recent_defects %}
+                    <tr>
+                        <td>
+                            <strong style="color: #4f46e5;">{{ defect.defect_code }}</strong>
+                        </td>
+                        <td style="max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <a href="{{ url_for('defects.detail', defect_id=defect.id) }}" style="font-weight: 600; color: #0f172a;">{{ defect.title }}</a>
+                        </td>
+                        <td>
+                            <span class="badge sev-{{ defect.severity }}">{{ defect.severity }}</span>
+                        </td>
+                        <td>
+                            <span class="badge status-{{ defect.status.replace(' ', '-') }}">{{ defect.status }}</span>
+                        </td>
+                        <td>
+                            {% if defect.assignee %}
+                                <span style="font-weight: 500; font-size: 0.85rem;">{{ defect.assignee.name }}</span>
+                            {% else %}
+                                <span style="color: #94a3b8; font-style: italic;">Unassigned</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('defects.detail', defect_id=defect.id) }}" class="btn btn-secondary btn-sm"><i class="fas fa-eye"></i></a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #64748b; padding: 24px;">No defects registered yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Audit Feed -->
+    <div class="card">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px;">Audit Activity Feed</h3>
+        <div class="timeline" style="margin-top: 0;">
+            {% for act in recent_activities %}
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div style="font-weight: 600; font-size: 0.85rem; color: #0f172a;">
+                        {{ act.user.name if act.user else 'System' }}: {{ act.action }}
+                    </div>
+                    {% if act.new_value %}
+                    <div style="font-size: 0.78rem; color: #475569; margin-top: 2px;">
+                        Value: <code>{{ act.new_value }}</code>
+                    </div>
+                    {% endif %}
+                    <div class="timeline-date" style="margin-top: 4px;">{{ act.timestamp.strftime('%b %d, %H:%M') }}</div>
+                </div>
+            </div>
+            {% else %}
+            <p style="font-size: 0.85rem; color: #64748b;">No recent activity logs.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

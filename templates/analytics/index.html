@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics & Inspection Metrics - DesignInspect{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Analytics & Inspection Metrics</h1>
+        <p class="page-subtitle">Quantitative quality assurance metrics, Defect Removal Efficiency (DRE), and defect trends</p>
+    </div>
+</div>
+
+<!-- Metrics Cards Banner -->
+<div class="grid-cols-4" style="margin-bottom: 32px;">
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Defect Density</div>
+            <div class="metric-val" style="color: #4f46e5;">{{ metrics.defect_density }}</div>
+            <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Defects / Size Metric</div>
+        </div>
+        <div class="metric-icon indigo"><i class="fas fa-calculator"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Defect Removal Efficiency</div>
+            <div class="metric-val" style="color: #10b981;">{{ metrics.dre_percentage }}%</div>
+            <div style="font-size: 0.75rem; color: #10b981; margin-top: 4px;">DRE % Rating</div>
+        </div>
+        <div class="metric-icon emerald"><i class="fas fa-shield-check"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Defect Closure Rate</div>
+            <div class="metric-val" style="color: #0284c7;">{{ metrics.closure_rate }}%</div>
+            <div style="font-size: 0.75rem; color: #0284c7; margin-top: 4px;">Closed / Total</div>
+        </div>
+        <div class="metric-icon sky"><i class="fas fa-circle-check"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Avg Resolution Time</div>
+            <div class="metric-val" style="color: #f59e0b;">{{ metrics.avg_resolution_time }} Days</div>
+            <div style="font-size: 0.75rem; color: #f59e0b; margin-top: 4px;">Mean Time to Repair</div>
+        </div>
+        <div class="metric-icon amber"><i class="fas fa-clock"></i></div>
+    </div>
+</div>
+
+<!-- Metrics Mathematical Formulas Explanation Card -->
+<div class="card" style="margin-bottom: 32px; background: linear-gradient(135deg, #f8fafc, #edf2f7); border: 1px solid #cbd5e1;">
+    <h3 style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 14px;"><i class="fas fa-square-root-variable" style="color: #4f46e5;"></i> Inspection Metrics Formulas Reference</h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; font-size: 0.85rem;">
+        <div style="background: white; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <strong style="color: #4f46e5; display: block; margin-bottom: 4px;">Defect Density (DD)</strong>
+            <code style="background: #f1f5f9; padding: 4px 6px; border-radius: 4px; display: block; font-size: 0.75rem; color: #0f172a;">DD = Total Defects / Document Size</code>
+            <span style="font-size: 0.75rem; color: #64748b; margin-top: 4px; display: block;">Measured per Page, KLOC, or Function Point.</span>
+        </div>
+
+        <div style="background: white; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <strong style="color: #10b981; display: block; margin-bottom: 4px;">Defect Removal Efficiency (DRE)</strong>
+            <code style="background: #f1f5f9; padding: 4px 6px; border-radius: 4px; display: block; font-size: 0.75rem; color: #0f172a;">DRE = (Resolved / Total) × 100</code>
+            <span style="font-size: 0.75rem; color: #64748b; margin-top: 4px; display: block;">Percentage of defects removed pre-release.</span>
+        </div>
+
+        <div style="background: white; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <strong style="color: #0284c7; display: block; margin-bottom: 4px;">Closure Rate (CR)</strong>
+            <code style="background: #f1f5f9; padding: 4px 6px; border-radius: 4px; display: block; font-size: 0.75rem; color: #0f172a;">CR = (Closed / Total) × 100</code>
+            <span style="font-size: 0.75rem; color: #64748b; margin-top: 4px; display: block;">Percentage of verified & closed defects.</span>
+        </div>
+
+        <div style="background: white; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <strong style="color: #f59e0b; display: block; margin-bottom: 4px;">Average Resolution Time</strong>
+            <code style="background: #f1f5f9; padding: 4px 6px; border-radius: 4px; display: block; font-size: 0.75rem; color: #0f172a;">ART = Avg(Resolved_At - Created_At)</code>
+            <span style="font-size: 0.75rem; color: #64748b; margin-top: 4px; display: block;">Average days taken to fix design defects.</span>
+        </div>
+    </div>
+</div>
+
+<!-- 4 Analytics Chart Visualizations -->
+<div class="grid-cols-2" style="margin-bottom: 32px;">
+    <div class="card">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;">Defects by Severity</h3>
+        <div style="height: 280px; position: relative;">
+            <canvas id="severityChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;">Defects by Category</h3>
+        <div style="height: 280px; position: relative;">
+            <canvas id="categoryChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="grid-cols-2">
+    <div class="card">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;">Defect Status Workflow Distribution</h3>
+        <div style="height: 280px; position: relative;">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;">Defects by Project Scope</h3>
+        <div style="height: 280px; position: relative;">
+            <canvas id="projectChart"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

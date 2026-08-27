@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DesignInspect - Formal Inspection Audit Report</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #0f172a;
+            background: #ffffff;
+            margin: 0;
+            padding: 40px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .report-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #4f46e5;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: #4f46e5;
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .metric-box {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 14px;
+            background: #f8fafc;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .metric-val {
+            font-size: 22px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-top: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: #475569;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            text-align: left;
+        }
+
+        td {
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            font-size: 12px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .badge-Critical { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .badge-High { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
+        .badge-Medium { background: #fefce8; color: #ca8a04; border: 1px solid #fef08a; }
+        .badge-Low { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+        .badge-Cosmetic { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="margin-bottom: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+        <button onclick="window.print()" style="background: #4f46e5; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer;">
+            🖨️ Print / Save as PDF
+        </button>
+    </div>
+
+    <div class="report-header">
+        <div class="logo-box">
+            <div class="logo-icon">DI</div>
+            <div>
+                <h1 style="margin: 0; font-size: 22px; font-weight: 800; color: #0f172a;">DesignInspect</h1>
+                <div style="font-size: 12px; color: #64748b; font-weight: 600;">Software Design Inspection & Defect Traceability Portal</div>
+            </div>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-weight: 700; font-size: 14px;">FORMAL AUDIT REPORT</div>
+            <div style="font-size: 12px; color: #64748b;">Generated: {{ generated_at }}</div>
+        </div>
+    </div>
+
+    <!-- Executive Scope -->
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div><strong>Project Scope:</strong> {{ selected_project.name if selected_project else 'All Active System Projects' }}</div>
+            <div><strong>Target Document:</strong> {{ selected_doc.name if selected_doc else 'All Design Specifications' }}</div>
+            <div><strong>Report Authority:</strong> Software Engineering Quality Assurance (SEQA)</div>
+            <div><strong>Total Defects Evaluated:</strong> {{ defects|length }}</div>
+        </div>
+    </div>
+
+    <!-- Inspection Metrics Section -->
+    <h3 style="font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a; margin-bottom: 12px;">
+        Key Inspection Performance Metrics
+    </h3>
+    <div class="metrics-grid">
+        <div class="metric-box">
+            <div class="metric-label">Defect Density</div>
+            <div class="metric-val" style="color: #4f46e5;">{{ metrics.defect_density }}</div>
+            <div style="font-size: 10px; color: #64748b;">Defects / Size Unit</div>
+        </div>
+
+        <div class="metric-box">
+            <div class="metric-label">Defect Removal Efficiency</div>
+            <div class="metric-val" style="color: #10b981;">{{ metrics.dre_percentage }}%</div>
+            <div style="font-size: 10px; color: #10b981;">DRE Quality Rating</div>
+        </div>
+
+        <div class="metric-box">
+            <div class="metric-label">Closure Rate</div>
+            <div class="metric-val" style="color: #0284c7;">{{ metrics.closure_rate }}%</div>
+            <div style="font-size: 10px; color: #0284c7;">Resolved / Total</div>
+        </div>
+
+        <div class="metric-box">
+            <div class="metric-label">Avg Resolution Time</div>
+            <div class="metric-val" style="color: #f59e0b;">{{ metrics.avg_resolution_time }} Days</div>
+            <div style="font-size: 10px; color: #f59e0b;">Turnaround Time</div>
+        </div>
+    </div>
+
+    <!-- Defect Audit Table -->
+    <h3 style="font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a; margin-bottom: 12px;">
+        Detailed Defect Inspection Register
+    </h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Defect ID</th>
+                <th>Defect Title</th>
+                <th>Category</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th>Location / Section</th>
+                <th>Assignee</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in defects %}
+            <tr>
+                <td><strong>{{ d.defect_code }}</strong></td>
+                <td><strong>{{ d.title }}</strong></td>
+                <td>{{ d.category.name if d.category else 'General' }}</td>
+                <td><span class="badge badge-{{ d.severity }}">{{ d.severity }}</span></td>
+                <td><strong>{{ d.status }}</strong></td>
+                <td>{{ d.location or '' }} ({{ d.page_section or '' }})</td>
+                <td>{{ d.assignee.name if d.assignee else 'Unassigned' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div style="margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 20px; display: flex; justify-content: space-between; font-size: 11px; color: #64748b;">
+        <div>DesignInspect Enterprise Quality Assurance Audit Log</div>
+        <div>Page 1 of 1</div>
+    </div>
+</body>
+</html>
