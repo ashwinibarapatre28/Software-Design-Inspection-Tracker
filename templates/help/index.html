@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Help & Documentation - DesignInspect{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Help & Documentation Center</h1>
+        <p class="page-subtitle">Guide to software design document inspection, defect classification, lifecycle stages, and metrics</p>
+    </div>
+</div>
+
+<!-- Visual Defect Lifecycle Diagram -->
+<div class="card" style="margin-bottom: 32px; background: linear-gradient(135deg, #0f172a, #1e1b4b); color: white;">
+    <h3 style="font-size: 1.2rem; font-weight: 800; color: white; margin-bottom: 20px; text-align: center;">
+        <i class="fas fa-diagram-project" style="color: #818cf8;"></i> Complete Software Defect Inspection Lifecycle
+    </h3>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; overflow-x: auto; padding: 10px 0;">
+        <div style="text-align: center; flex: 1; min-width: 110px;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: #4f46e5; color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 8px;">1</div>
+            <div style="font-weight: 700; font-size: 0.9rem;">Identify</div>
+            <div style="font-size: 0.72rem; color: #94a3b8;">Review Document</div>
+        </div>
+        <i class="fas fa-arrow-right" style="color: #6366f1;"></i>
+
+        <div style="text-align: center; flex: 1; min-width: 110px;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: #8b5cf6; color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 8px;">2</div>
+            <div style="font-weight: 700; font-size: 0.9rem;">Log</div>
+            <div style="font-size: 0.72rem; color: #94a3b8;">Register Defect</div>
+        </div>
+        <i class="fas fa-arrow-right" style="color: #6366f1;"></i>
+
+        <div style="text-align: center; flex: 1; min-width: 110px;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: #0284c7; color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 8px;">3</div>
+            <div style="font-weight: 700; font-size: 0.9rem;">Categorize</div>
+            <div style="font-size: 0.72rem; color: #94a3b8;">Sev & Priority</div>
+        </div>
+        <i class="fas fa-arrow-right" style="color: #6366f1;"></i>
+
+        <div style="text-align: center; flex: 1; min-width: 110px;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: #3b82f6; color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 8px;">4</div>
+            <div style="font-weight: 700; font-size: 0.9rem;">Assign</div>
+            <div style="font-size: 0.72rem; color: #94a3b8;">Task Developer</div>
+        </div>
+        <i class="fas fa-arrow-right" style="color: #6366f1;"></i>
+
+        <div style="text-align: center; flex: 1; min-width: 110px;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: #10b981; color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 8px;">5</div>
+            <div style="font-weight: 700; font-size: 0.9rem;">Fix / Resolve</div>
+            <div style="font-size: 0.72rem; color: #94a3b8;">Update Document</div>
+        </div>
+        <i class="fas fa-arrow-right" style="color: #6366f1;"></i>
+
+        <div style="text-align: center; flex: 1; min-width: 110px;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: #f59e0b; color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 8px;">6</div>
+            <div style="font-weight: 700; font-size: 0.9rem;">Verify</div>
+            <div style="font-size: 0.72rem; color: #94a3b8;">Reviewer Re-check</div>
+        </div>
+        <i class="fas fa-arrow-right" style="color: #6366f1;"></i>
+
+        <div style="text-align: center; flex: 1; min-width: 110px;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: #64748b; color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 8px;">7</div>
+            <div style="font-weight: 700; font-size: 0.9rem;">Close</div>
+            <div style="font-size: 0.72rem; color: #94a3b8;">Final Approval</div>
+        </div>
+    </div>
+</div>
+
+<div class="grid-cols-2" style="gap: 28px;">
+    <!-- Fundamentals Card -->
+    <div class="card">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 14px; color: #0f172a;">What is Software Design Inspection?</h3>
+        <p style="font-size: 0.9rem; color: #475569; line-height: 1.6; margin-bottom: 16px;">
+            A Software Design Inspection is a formal, peer-review process for evaluating software design artifacts (Software Architecture Documents, Database ER Diagrams, REST API specs, UML diagrams) before coding begins. Identifying defects during the design phase reduces rework costs by up to 100x compared to post-release fixes.
+        </p>
+
+        <h4 style="font-size: 0.95rem; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Severity vs. Priority Matrix</h4>
+        <div style="font-size: 0.85rem; color: #475569;">
+            <div style="margin-bottom: 6px;">• <strong>Severity:</strong> Measures technical or functional impact on the system (Critical, High, Medium, Low, Cosmetic).</div>
+            <div>• <strong>Priority:</strong> Measures urgency of correction timeline (Urgent, High, Medium, Low).</div>
+        </div>
+    </div>
+
+    <!-- Step-by-step How To Card -->
+    <div class="card">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 14px; color: #0f172a;">How to Resolve & Verify a Defect</h3>
+        <ol style="padding-left: 20px; font-size: 0.88rem; color: #475569; line-height: 1.7;">
+            <li><strong>Developer:</strong> Open <code>My Tasks</code>, click on an assigned defect, and update status to <code>In Progress</code>.</li>
+            <li><strong>Developer:</strong> Modify design document, add developer resolution comment, and update status to <code>Resolved</code>.</li>
+            <li><strong>Reviewer:</strong> Inspect new document version. If fix is verified, set status to <code>Closed</code>.</li>
+            <li><strong>Reviewer:</strong> If fix is incomplete, click <code>Reopen Defect</code> with reason, shifting status to <code>Reopened</code>.</li>
+        </ol>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Team Members - DesignInspect{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Team & Role Administration</h1>
+        <p class="page-subtitle">Manage reviewer roles, developer defect assignments, and access permissions</p>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Member Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Assigned Defects</th>
+                <th>Open Tasks</th>
+                <th>Resolved</th>
+                <th>Account Status</th>
+                {% if session.get('user_role') == 'Admin' %}
+                <th>Admin Actions</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in user_stats %}
+            {% set u = item.user %}
+            <tr>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="user-avatar-sm">{{ u.name[0] }}</div>
+                        <div>
+                            <div style="font-weight: 700; color: #0f172a;">{{ u.name }}</div>
+                            <div style="font-size: 0.75rem; color: #64748b;">@{{ u.username }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td><span style="font-size: 0.88rem; color: #475569;">{{ u.email }}</span></td>
+                <td><span class="role-badge {{ u.role.replace(' ', '-') }}">{{ u.role }}</span></td>
+                <td><strong style="color: #4f46e5;">{{ item.assigned }}</strong></td>
+                <td>
+                    {% if item.open_tasks > 0 %}
+                    <span class="badge" style="background: #fef2f2; color: #dc2626;">{{ item.open_tasks }} Open</span>
+                    {% else %}
+                    <span class="badge" style="background: #f1f5f9; color: #64748b;">0 Open</span>
+                    {% endif %}
+                </td>
+                <td><strong style="color: #10b981;">{{ item.resolved }}</strong></td>
+                <td>
+                    {% if u.status == 'Active' %}
+                    <span class="badge" style="background: #ecfdf5; color: #047857;">Active</span>
+                    {% else %}
+                    <span class="badge" style="background: #fef2f2; color: #dc2626;">Disabled</span>
+                    {% endif %}
+                </td>
+                {% if session.get('user_role') == 'Admin' %}
+                <td>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <form action="{{ url_for('team.update_role', user_id=u.id) }}" method="POST" style="display: inline-flex; gap: 4px;">
+                            <select name="role" class="form-select" style="padding: 2px 6px; font-size: 0.78rem; width: 130px;" onchange="this.form.submit()">
+                                <option value="Admin" {% if u.role == 'Admin' %}selected{% endif %}>Admin</option>
+                                <option value="Project Manager" {% if u.role == 'Project Manager' %}selected{% endif %}>Project Manager</option>
+                                <option value="Reviewer" {% if u.role == 'Reviewer' %}selected{% endif %}>Reviewer</option>
+                                <option value="Developer" {% if u.role == 'Developer' %}selected{% endif %}>Developer</option>
+                            </select>
+                        </form>
+
+                        <form action="{{ url_for('team.toggle_status', user_id=u.id) }}" method="POST" style="display: inline;">
+                            {% if u.status == 'Active' %}
+                            <button type="submit" class="btn btn-secondary btn-sm" style="color: #dc2626;" title="Disable Account"><i class="fas fa-user-slash"></i></button>
+                            {% else %}
+                            <button type="submit" class="btn btn-secondary btn-sm" style="color: #059669;" title="Activate Account"><i class="fas fa-user-check"></i></button>
+                            {% endif %}
+                        </form>
+                    </div>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - DesignInspect{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Settings & Customization</h1>
+        <p class="page-subtitle">Configure personal profile settings, defect classification categories, and application preferences</p>
+    </div>
+</div>
+
+<div class="grid-cols-2" style="gap: 28px;">
+    <!-- Profile Settings -->
+    <div class="card">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px;"><i class="fas fa-user-gear" style="color: #4f46e5;"></i> Profile Settings</h3>
+        
+        <form action="{{ url_for('settings.index') }}" method="POST">
+            <input type="hidden" name="action" value="profile">
+
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" name="name" class="form-control" value="{{ user.name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">New Password (Leave blank to keep unchanged)</label>
+                <input type="password" name="password" class="form-control" placeholder="••••••••">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Assigned System Role</label>
+                <input type="text" class="form-control" value="{{ user.role }}" readonly style="background: #f1f5f9; color: #64748b;">
+            </div>
+
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Profile</button>
+        </form>
+    </div>
+
+    <!-- Defect Category Configuration -->
+    <div class="card">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px;"><i class="fas fa-tags" style="color: #4f46e5;"></i> Defect Category Configuration</h3>
+        
+        {% if session.get('user_role') == 'Admin' %}
+        <form action="{{ url_for('settings.index') }}" method="POST" style="margin-bottom: 24px; background: #f8fafc; padding: 16px; border-radius: 10px; border: 1px solid #e2e8f0;">
+            <input type="hidden" name="action" value="add_category">
+            <div class="form-group">
+                <label class="form-label">Add Custom Category Name</label>
+                <input type="text" name="category_name" class="form-control" placeholder="e.g. Compliance Flaw, API Rate Limit Defect" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Category Description</label>
+                <input type="text" name="category_desc" class="form-control" placeholder="Brief description of defect type...">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Category</button>
+        </form>
+        {% endif %}
+
+        <h4 style="font-size: 0.85rem; font-weight: 700; color: #64748b; margin-bottom: 10px;">Active Defect Categories ({{ categories|length }})</h4>
+        <div style="max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+            {% for cat in categories %}
+            <div style="padding: 10px 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.88rem; display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <strong style="color: #0f172a;">{{ cat.name }}</strong>
+                    <div style="font-size: 0.75rem; color: #64748b;">{{ cat.description or 'Predefined system category' }}</div>
+                </div>
+                {% if cat.is_custom %}
+                <span class="badge" style="background: #e0e7ff; color: #3730a3; font-size: 0.7rem;">Custom</span>
+                {% else %}
+                <span class="badge" style="background: #f1f5f9; color: #64748b; font-size: 0.7rem;">Default</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
