@@ -27,3 +27,7 @@ pip-log.txt
 Thumbs.db
 .antigravity/
 .gemini/
+
+# Uploads
+static/uploads/*
+!static/uploads/.gitkeep
