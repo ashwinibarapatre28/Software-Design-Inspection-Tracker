@@ -61,10 +61,17 @@ def create_app():
 
     return app
 
-if __name__ == '__main__':
-    app = create_app()
-    with app.app_context():
-        db.create_all()
-    print("DesignInspect Server running at http://127.0.0.1:5050")
-    app.run(debug=True, port=5050)
+app = create_app()
 
+with app.app_context():
+    db.create_all()
+
+
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5050))
+    print(f"DesignInspect Server running on port {port}")
+    app.run(
+        host="0.0.0.0",
+        port=port,
+        debug=False
+    )
